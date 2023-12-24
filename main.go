@@ -6,6 +6,8 @@ import (
 	"log"
     "net/http"
 
+    "activity_tracker/components"
+    "github.com/a-h/templ"
     "github.com/gin-gonic/gin"
     "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -78,11 +80,9 @@ func createDatabase(){
 }
 
 func main(){
-    router := gin.Default()
-    router.LoadHTMLGlob("html/*")
-    router.GET("/activities", getActivities)
-    router.POST("/activities",postActivity)
-    router.Run("localhost:8080")
+	component := components.Hello("John")
+    http.Handle("/", templ.Handler(component))
+	http.ListenAndServe(":8080", nil)
 }
 
 func newclient(profile string) (*dynamodb.Client, error) {
