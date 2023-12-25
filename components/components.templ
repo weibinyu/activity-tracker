@@ -1,5 +1,26 @@
 package components 
 
 templ Hello(name string) {
-	<div>Hello, { name }</div>
+    <div>Hello, { name }</div>
+}
+
+templ Root(){
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <title>Activity tracker</title>
+  </head>
+  <body>
+    <main>
+      <div> 
+        <h1>Activity tracker</h1>
+        <br/>
+      </div>
+    </main>
+  </body>
+</html>
 }
