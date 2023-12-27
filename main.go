@@ -5,29 +5,13 @@ import (
 	"time"
 
 	"activity_tracker/components"
+	"activity_tracker/db"
+
 	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
 )
 
-type Activity_Types int64
-
-const (
-	Code Activity_Types = iota
-	Rest
-	BJJ
-	Entertainment
-)
-
-type activity struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	Date         time.Time      `json:"date"`
-	TotalMinutes int            `json:"totalMinutes"`
-	CreatorID    string         `json:"creatorID"`
-	Type         Activity_Types `json:"type"`
-}
-
-var activities = []activity{
+var activities = []db.Activity{
 	{
 		ID: "1", Name: "Programming", Date: time.Now(),
 		CreatorID: "user", TotalMinutes: 60,
@@ -47,7 +31,7 @@ func getActivities(c *gin.Context) {
 }
 
 func postActivity(c *gin.Context) {
-	var newActivity activity
+	var newActivity db.Activity
 	if err := c.BindJSON(&newActivity); err != nil {
 		return
 	}
@@ -57,7 +41,8 @@ func postActivity(c *gin.Context) {
 }
 
 func main() {
-	component := components.Root()
+	component := components.Root(activities)
 	http.Handle("/", templ.Handler(component))
+
 	http.ListenAndServe(":8080", nil)
 }

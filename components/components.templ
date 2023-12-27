@@ -1,26 +1,45 @@
 package components 
 
-templ Hello(name string) {
-    <div>Hello, { name }</div>
+import (
+	"time"
+
+	"activity_tracker/db"
+)
+
+func timeToString(date time.Date) string {
+	currentTime := time.Now()
+
+	// Convert time to string using Format
+	timeAsString := currentTime.Format(date)
+	return timeAsString
 }
 
-templ Root(){
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <title>Activity tracker</title>
-  </head>
-  <body>
-    <main>
-      <div> 
-        <h1>Activity tracker</h1>
-        <br/>
-      </div>
-    </main>
-  </body>
-</html>
+templ Hello(name string) {
+	<div>Hello, { name }</div>
+}
+
+templ Root(activities []db.Activity) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<title>Activity tracker</title>
+		</head>
+		<body>
+			<main>
+				<div>
+					<h1>Activity tracker</h1>
+					<br/>
+					for _,item := range activities {
+						<h1>{ item.Name }</h1>
+						<h3>{ item.Date.String() }</h3>
+						<hr/>
+					}
+				</div>
+			</main>
+		</body>
+	</html>
 }

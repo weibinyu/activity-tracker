@@ -12,6 +12,24 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+type Activity_Types int64
+
+const (
+	Code Activity_Types = iota
+	Rest
+	BJJ
+	Entertainment
+)
+
+type Activity struct {
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Date         time.Time      `json:"date"`
+	TotalMinutes int            `json:"totalMinutes"`
+	CreatorID    string         `json:"creatorID"`
+	Type         Activity_Types `json:"type"`
+}
+
 func createDatabase() {
 	localdb, err := newclient("local")
 
