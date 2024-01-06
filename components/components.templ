@@ -1,22 +1,8 @@
 package components 
 
 import (
-	"time"
-
 	"activity_tracker/db"
 )
-
-func timeToString(date time.Date) string {
-	currentTime := time.Now()
-
-	// Convert time to string using Format
-	timeAsString := currentTime.Format(date)
-	return timeAsString
-}
-
-templ Hello(name string) {
-	<div>Hello, { name }</div>
-}
 
 templ Root(activities []db.Activity) {
 	<!DOCTYPE html>
@@ -26,20 +12,36 @@ templ Root(activities []db.Activity) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<script src="https://cdn.tailwindcss.com"></script>
 			<title>Activity tracker</title>
 		</head>
 		<body>
 			<main>
-				<div>
-					<h1>Activity tracker</h1>
-					<br/>
-					for _,item := range activities {
-						<h1>{ item.Name }</h1>
-						<h3>{ item.Date.String() }</h3>
-						<hr/>
-					}
+				<h1>Activity tracker</h1>
+				<div class="flex flex-row">
+					<div class="basic-1/2"></div>
+					@ActivitiesComp(activities)
 				</div>
 			</main>
 		</body>
 	</html>
+}
+
+templ ActivitiesComp(activities []db.Activity) {
+	<div class="basic-1/2">
+		<br/>
+		for _,item := range activities {
+			<h1>{ item.Name }</h1>
+			<h3>{ item.Date.String() }</h3>
+			<h3
+				hx-delete={ "/activities/" + item.ID }
+				hx-trigger="click"
+				hx-target="closest div"
+				hx-swap="outerHTML"
+			>
+				delete me
+			</h3>
+			<hr/>
+		}
+	</div>
 }

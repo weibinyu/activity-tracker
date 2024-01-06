@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"path"
 	"time"
 
 	"activity_tracker/components"
@@ -17,11 +19,11 @@ var activities = []db.Activity{
 		CreatorID: "user", TotalMinutes: 60,
 	},
 	{
-		ID: "2", Name: "Programming", Date: time.Now(),
+		ID: "2", Name: "Gaming", Date: time.Now(),
 		CreatorID: "user", TotalMinutes: 60,
 	},
 	{
-		ID: "3", Name: "Programming", Date: time.Now(),
+		ID: "3", Name: "Bjjing", Date: time.Now(),
 		CreatorID: "user", TotalMinutes: 60,
 	},
 }
@@ -40,9 +42,34 @@ func postActivity(c *gin.Context) {
 	c.JSON(http.StatusCreated, activities)
 }
 
+func deleteActivity(ID string) {
+	i := SliceIndex(len(activities), func(i int) bool { return activities[i].ID == ID })
+	if i == -1 {
+		return
+	}
+
+	activities[i] = activities[len(activities)-1]
+	activities = activities[:len(activities)-1]
+}
+
 func main() {
 	component := components.Root(activities)
-	http.Handle("/", templ.Handler(component))
 
-	http.ListenAndServe(":8080", nil)
+	http.Handle("/", templ.Handler(component))
+	http.HandleFunc("/activities/", func(w http.ResponseWriter, r *http.Request) {
+		deleteActivity(path.Base(r.URL.Path))
+		components.ActivitiesComp(activities).Render(r.Context(), w)
+	})
+
+	fmt.Print("Server listening on port 8080")
+	http.ListenAndServe("localhost:8080", nil)
+}
+
+func SliceIndex(limit int, predicate func(i int) bool) int {
+	for i := 0; i < limit; i++ {
+		if predicate(i) {
+			return i
+		}
+	}
+	return -1
 }
