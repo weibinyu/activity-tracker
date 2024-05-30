@@ -12,22 +12,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type Activity_Types int64
+type activity_types struct {
+	userId        string `json:"userId"`
+	activity_type string `json:"activity_type"`
+}
 
-const (
-	Code Activity_Types = iota
-	Rest
-	BJJ
-	Entertainment
-)
-
-type Activity struct {
+type ActivityRecord struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`
 	Date         time.Time      `json:"date"`
 	TotalMinutes int            `json:"totalMinutes"`
 	CreatorID    string         `json:"creatorID"`
-	Type         Activity_Types `json:"type"`
+	Type         activity_types `json:"activity_type"`
+}
+
+type User struct {
+	id       string `json:"id"`
+	password string `json:"password"`
 }
 
 func createDatabase() {
@@ -43,7 +44,7 @@ func createDatabase() {
 		"Activities",
 	}
 
-	local.CreateActivitiesTable()
+	local.CreateActivitiyRecordTable()
 }
 
 func newclient(profile string) (*dynamodb.Client, error) {
@@ -73,23 +74,67 @@ type TableBasics struct {
 	TableName      string
 }
 
-func (basics TableBasics) CreateActivitiesTable() (*types.TableDescription, error) {
+func (basics TableBasics) CreateUserTable() (*types.TableDescription, error) {
 	var tableDesc *types.TableDescription
-	table, err := basics.DynamoDbClient.CreateTable(context.TODO(), &dynamodb.CreateTableInput{
-		AttributeDefinitions: []types.AttributeDefinition{{
-			AttributeName: aws.String("date"),
-			AttributeType: types.ScalarAttributeTypeN,
-		}},
-		KeySchema: []types.KeySchemaElement{{
-			AttributeName: aws.String("date"),
-			KeyType:       types.KeyTypeHash,
-		}},
-		TableName: aws.String(basics.TableName),
-		ProvisionedThroughput: &types.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(10),
-			WriteCapacityUnits: aws.Int64(10),
-		},
-	})
+	table, err :=
+		basics.DynamoDbClient.CreateTable(context.TODO(), &dynamodb.CreateTableInput{
+			AttributeDefinitions: []types.AttributeDefinition{{
+				AttributeName: aws.String("date"),
+				AttributeType: types.ScalarAttributeTypeN,
+			}},
+			KeySchema: []types.KeySchemaElement{{
+				AttributeName: aws.String("date"),
+				KeyType:       types.KeyTypeHash,
+			}},
+			TableName: aws.String(basics.TableName),
+			ProvisionedThroughput: &types.ProvisionedThroughput{
+				ReadCapacityUnits:  aws.Int64(10),
+				WriteCapacityUnits: aws.Int64(10),
+			},
+		})
+	if err != nil {
+		log.Printf("Couldn't create table %v. Here's why: %v\n", basics.TableName, err)
+	} else {
+		waiter := dynamodb.NewTableExistsWaiter(basics.DynamoDbClient)
+		err = waiter.Wait(context.TODO(), &dynamodb.DescribeTableInput{
+			TableName: aws.String(basics.TableName)}, 5*time.Minute)
+		if err != nil {
+			log.Printf("Wait for table exists failed. Here's why: %v\n", err)
+		}
+		tableDesc = table.TableDescription
+	}
+	return tableDesc, err
+}
+
+func (basics TableBasics) CreateActivitiyRecordTable() (*types.TableDescription, error) {
+	var tableDesc *types.TableDescription
+	table, err := basics.DynamoDbClient.CreateTable(context.TODO(),
+		&dynamodb.CreateTableInput{
+			AttributeDefinitions: []types.AttributeDefinition{{
+				AttributeName: aws.String("id"),
+				AttributeType: types.ScalarAttributeTypeS,
+			},
+				{
+					AttributeName: aws.String("date"),
+					AttributeType: types.ScalarAttributeTypeS, // data type descriptor: S == string
+				},
+			},
+			KeySchema: []types.KeySchemaElement{
+				{
+					AttributeName: aws.String("id"),
+					KeyType:       types.KeyTypeHash,
+				},
+				{
+					AttributeName: aws.String("date"),
+					KeyType:       types.KeyTypeRange,
+				},
+			},
+			TableName: aws.String(basics.TableName),
+			ProvisionedThroughput: &types.ProvisionedThroughput{
+				ReadCapacityUnits:  aws.Int64(10),
+				WriteCapacityUnits: aws.Int64(10),
+			},
+		})
 	if err != nil {
 		log.Printf("Couldn't create table %v. Here's why: %v\n", basics.TableName, err)
 	} else {
